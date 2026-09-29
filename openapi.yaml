@@ -1,0 +1,1142 @@
+openapi: 3.0.3
+info:
+  title: Organization Website REST API
+  description: |
+    API REST pour site web d'organisation.
+    Rôles utilisateurs:
+    - `admin`
+    - `member`
+    - `honorary member` (ou `honorary_member`)
+    - `operational`
+    - `partner`
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Serveur de développement
+
+paths:
+  # =========================================================================
+  # AUTHENTICATION
+  # =========================================================================
+  /auth/login:
+    post:
+      summary: Connexion utilisateur (membre, opérationnel, partenaire, admin)
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: user@organization.org
+                password:
+                  type: string
+                  example: secret123
+      responses:
+        200:
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/UserResponse'
+        400:
+          description: Identifiants invalides
+
+  /auth/admin/login:
+    post:
+      summary: Connexion spécifique administrateur
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: admin@organization.org
+                password:
+                  type: string
+                  example: Admin@123456
+      responses:
+        200:
+          description: Connexion réussie avec token JWT admin
+        403:
+          description: Accès refusé (non-administrateur)
+
+  /auth/register:
+    post:
+      summary: Inscription d'un nouvel utilisateur
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, email, password]
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                metier:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        200:
+          description: Inscription réussie
+
+  /auth/change-password:
+    post:
+      summary: Changer le mot de passe utilisateur
+      tags: [Auth]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [oldPassword, newPassword]
+              properties:
+                oldPassword:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        200:
+          description: Mot de passe mis à jour
+
+  # =========================================================================
+  # USER PROFILE
+  # =========================================================================
+  /user/profile:
+    get:
+      summary: Consulter son propre profil
+      tags: [User Profile]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Informations de l'utilisateur connecté
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+    put:
+      summary: Mettre à jour son propre profil (avec avatar optionnel)
+      tags: [User Profile]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                metier:
+                  type: string
+                bibliographie:
+                  type: string
+                linkedin:
+                  type: string
+                conseil:
+                  type: string
+                phone:
+                  type: string
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Profil mis à jour
+
+  /user/delete-avatar:
+    post:
+      summary: Supprimer son avatar
+      tags: [User Profile]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Avatar supprimé
+
+  /user/logout:
+    post:
+      summary: Déconnexion utilisateur (invalidation du token)
+      tags: [User Profile]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Déconnecté avec succès
+
+  # =========================================================================
+  # ADMIN: GESTION DES UTILISATEURS
+  # =========================================================================
+  /admin/users:
+    post:
+      summary: [Admin] Créer un utilisateur
+      tags: [Admin Users]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [firstName, lastName, email]
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                  enum: [admin, member, honorary member, operational, partner]
+                metier:
+                  type: string
+                bibliographie:
+                  type: string
+                linkedin:
+                  type: string
+                conseil:
+                  type: string
+                  description: Remarques / Conseil consultatif (spécifique aux partenaires)
+                phone:
+                  type: string
+                status:
+                  type: string
+                  enum: [active, desactivated, pending]
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Utilisateur créé
+
+    get:
+      summary: [Admin] Consulter la liste des utilisateurs
+      tags: [Admin Users]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: role
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        200:
+          description: Liste paginée des utilisateurs
+
+  /admin/users/{id}:
+    get:
+      summary: [Admin] Consulter un utilisateur par ID
+      tags: [Admin Users]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Détails de l'utilisateur
+    put:
+      summary: [Admin] Mettre à jour un utilisateur
+      tags: [Admin Users]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                role:
+                  type: string
+                  enum: [admin, member, honorary member, operational, partner]
+                metier:
+                  type: string
+                bibliographie:
+                  type: string
+                linkedin:
+                  type: string
+                conseil:
+                  type: string
+                status:
+                  type: string
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Utilisateur mis à jour
+    delete:
+      summary: [Admin] Supprimer un utilisateur
+      tags: [Admin Users]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Utilisateur supprimé
+
+  /admin/users/{id}/activate:
+    patch:
+      summary: [Admin] Activer un utilisateur
+      tags: [Admin Users]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Utilisateur activé
+
+  /admin/users/{id}/deactivate:
+    patch:
+      summary: [Admin] Désactiver un utilisateur
+      tags: [Admin Users]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Utilisateur désactivé
+
+  # =========================================================================
+  # ADMIN: GESTION DES ACTUALITÉS
+  # =========================================================================
+  /admin/news:
+    post:
+      summary: [Admin] Créer une actualité
+      tags: [Admin News]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, content]
+              properties:
+                title:
+                  type: string
+                summary:
+                  type: string
+                content:
+                  type: string
+                category:
+                  type: string
+                tags:
+                  type: string
+                status:
+                  type: string
+                  enum: [active, suspended]
+                coverImage:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Actualité créée
+    get:
+      summary: [Admin] Consulter toutes les actualités (actives et suspendues)
+      tags: [Admin News]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Liste des actualités
+
+  /admin/news/{id}:
+    get:
+      summary: [Admin] Consulter une actualité par ID
+      tags: [Admin News]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Détails de l'actualité
+    put:
+      summary: [Admin] Éditer une actualité
+      tags: [Admin News]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Actualité mise à jour
+    delete:
+      summary: [Admin] Supprimer une actualité
+      tags: [Admin News]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Actualité supprimée
+
+  /admin/news/{id}/suspend:
+    patch:
+      summary: [Admin] Suspendre une actualité
+      tags: [Admin News]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Actualité suspendue
+
+  /admin/news/{id}/reactivate:
+    patch:
+      summary: [Admin] Réactiver une actualité suspendue
+      tags: [Admin News]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Actualité réactivée
+
+  # =========================================================================
+  # ADMIN: GESTION DE L'AGENDA (ÉVÉNEMENTS)
+  # =========================================================================
+  /admin/agenda:
+    post:
+      summary: [Admin] Créer un événement dans l'agenda
+      tags: [Admin Agenda]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, startDate]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                startDate:
+                  type: string
+                  format: date-time
+                endDate:
+                  type: string
+                  format: date-time
+                location:
+                  type: string
+                type:
+                  type: string
+                registrationLink:
+                  type: string
+                coverImage:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Événement créé
+    get:
+      summary: [Admin] Consulter tous les événements de l'agenda
+      tags: [Admin Agenda]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Liste des événements
+
+  /admin/agenda/{id}:
+    get:
+      summary: [Admin] Consulter un événement par ID
+      tags: [Admin Agenda]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Détails de l'événement
+    put:
+      summary: [Admin] Éditer un événement
+      tags: [Admin Agenda]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Événement mis à jour
+    delete:
+      summary: [Admin] Supprimer un événement
+      tags: [Admin Agenda]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Événement supprimé
+
+  /admin/agenda/{id}/suspend:
+    patch:
+      summary: [Admin] Suspendre un événement
+      tags: [Admin Agenda]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Événement suspendu
+
+  /admin/agenda/{id}/reactivate:
+    patch:
+      summary: [Admin] Réactiver un événement
+      tags: [Admin Agenda]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Événement réactivé
+
+  # =========================================================================
+  # ADMIN: GESTION DES MISSIONS
+  # =========================================================================
+  /admin/missions:
+    post:
+      summary: [Admin] Créer une mission
+      tags: [Admin Missions]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, description]
+              properties:
+                title:
+                  type: string
+                shortDescription:
+                  type: string
+                description:
+                  type: string
+                objectives:
+                  type: string
+                order:
+                  type: integer
+                image:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Mission créée
+    get:
+      summary: [Admin] Consulter toutes les missions
+      tags: [Admin Missions]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Liste des missions
+
+  /admin/missions/{id}:
+    get:
+      summary: [Admin] Consulter une mission par ID
+      tags: [Admin Missions]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Détails de la mission
+    put:
+      summary: [Admin] Éditer une mission
+      tags: [Admin Missions]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Mission mise à jour
+    delete:
+      summary: [Admin] Supprimer une mission
+      tags: [Admin Missions]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Mission supprimée
+
+  /admin/missions/{id}/suspend:
+    patch:
+      summary: [Admin] Suspendre une mission
+      tags: [Admin Missions]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Mission suspendue
+
+  /admin/missions/{id}/reactivate:
+    patch:
+      summary: [Admin] Réactiver une mission
+      tags: [Admin Missions]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Mission réactivée
+
+  # =========================================================================
+  # ADMIN: GESTION DES ARTICLES DU BLOG
+  # =========================================================================
+  /admin/articles:
+    post:
+      summary: [Admin] Créer un article de blog
+      tags: [Admin Blog Articles]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, content]
+              properties:
+                title:
+                  type: string
+                summary:
+                  type: string
+                content:
+                  type: string
+                category:
+                  type: string
+                tags:
+                  type: string
+                coverImage:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Article créé
+    get:
+      summary: [Admin] Consulter tous les articles
+      tags: [Admin Blog Articles]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Liste des articles
+
+  /admin/articles/{id}:
+    get:
+      summary: [Admin] Consulter un article par ID
+      tags: [Admin Blog Articles]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Détails de l'article
+    put:
+      summary: [Admin] Éditer un article
+      tags: [Admin Blog Articles]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Article mis à jour
+    delete:
+      summary: [Admin] Supprimer un article
+      tags: [Admin Blog Articles]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Article supprimé
+
+  /admin/articles/{id}/suspend:
+    patch:
+      summary: [Admin] Suspendre un article
+      tags: [Admin Blog Articles]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Article suspendu
+
+  /admin/articles/{id}/reactivate:
+    patch:
+      summary: [Admin] Réactiver un article
+      tags: [Admin Blog Articles]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Article réactivé
+
+  # =========================================================================
+  # ADMIN: CONTACTS & NEWSLETTER
+  # =========================================================================
+  /admin/contacts:
+    get:
+      summary: [Admin] Consulter les messages de contact des visiteurs
+      tags: [Admin Contacts]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: isRead
+          schema:
+            type: boolean
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        200:
+          description: Liste des messages
+  /admin/contacts/{id}:
+    get:
+      summary: [Admin] Consulter un message et le marquer comme lu
+      tags: [Admin Contacts]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Détails du message
+
+  /admin/newsletter/subscribers:
+    get:
+      summary: [Admin] Consulter les abonnés à la newsletter
+      tags: [Admin Newsletter]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Liste des abonnés
+
+  # =========================================================================
+  # PUBLIC / VISITEURS: DIRECTORY, NEWS, AGENDA, MISSIONS, ARTICLES, CONTACT, NEWSLETTER
+  # =========================================================================
+  /members:
+    get:
+      summary: Consulter la liste publique des membres et partenaires
+      tags: [Public Directory]
+      parameters:
+        - in: query
+          name: role
+          description: Filtrer par rôle (member, honorary member, operational, partner)
+          schema:
+            type: string
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        200:
+          description: Liste publique des membres et partenaires
+
+  /news:
+    get:
+      summary: Consulter les actualités actives
+      tags: [Public News]
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        200:
+          description: Liste des actualités publiées
+  /news/{idOrSlug}:
+    get:
+      summary: Consulter les détails d'une actualité par ID ou slug
+      tags: [Public News]
+      parameters:
+        - in: path
+          name: idOrSlug
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Détails de l'actualité
+
+  /agenda:
+    get:
+      summary: Consulter l'agenda des événements
+      tags: [Public Agenda]
+      parameters:
+        - in: query
+          name: upcoming
+          schema:
+            type: boolean
+        - in: query
+          name: type
+          schema:
+            type: string
+      responses:
+        200:
+          description: Liste des événements
+  /agenda/{idOrSlug}:
+    get:
+      summary: Consulter les détails d'un événement
+      tags: [Public Agenda]
+      parameters:
+        - in: path
+          name: idOrSlug
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Détails de l'événement
+
+  /missions:
+    get:
+      summary: Consulter les missions de l'organisation
+      tags: [Public Missions]
+      responses:
+        200:
+          description: Liste des missions ordonnées
+  /missions/{idOrSlug}:
+    get:
+      summary: Consulter une mission
+      tags: [Public Missions]
+      parameters:
+        - in: path
+          name: idOrSlug
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Détails de la mission
+
+  /articles:
+    get:
+      summary: Consulter les articles du blog
+      tags: [Public Blog]
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: tag
+          schema:
+            type: string
+      responses:
+        200:
+          description: Liste des articles
+  /articles/{idOrSlug}:
+    get:
+      summary: Lire un article du blog (incrémente automatiquement le compteur de vues)
+      tags: [Public Blog]
+      parameters:
+        - in: path
+          name: idOrSlug
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Détails de l'article
+
+  /contact:
+    post:
+      summary: Formulaire de contact pour les visiteurs
+      tags: [Public Contact]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, subject, message]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+                subject:
+                  type: string
+                message:
+                  type: string
+      responses:
+        201:
+          description: Message envoyé avec succès
+
+  /newsletter/subscribe:
+    post:
+      summary: S'abonner à la newsletter
+      tags: [Public Newsletter]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+      responses:
+        201:
+          description: Abonnement effectué
+        200:
+          description: Déjà abonné ou réactivé
+
+  /newsletter/unsubscribe:
+    post:
+      summary: Se désabonner de la newsletter
+      tags: [Public Newsletter]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+      responses:
+        200:
+          description: Désabonnement effectué
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [admin, member, honorary member, operational, partner]
+        metier:
+          type: string
+        bibliographie:
+          type: string
+        avatar:
+          type: string
+        linkedin:
+          type: string
+        conseil:
+          type: string
+        status:
+          type: string
+          enum: [active, desactivated, pending]

@@ -1,0 +1,40 @@
+function renderLink(url) {
+    let result = "";
+    if (typeof url === "string" && url.length > 0) {
+      result = "<a href=\"" + url + "\">Dashboard Login</a>"
+    }
+    return result;
+  }
+  function buildEmailTemplate ({title = "System Error", content, redirectLink}) {
+      return `
+    <body style="margin:0; padding:0; background:#f2f2f2f2;">
+      <center>
+      <div style="width:100%; max-width:600px; background:#ffffff; padding:30px 20px; text-align:left; font-family: 'Arial', sans-serif;">
+        <a href="http://grower.com">
+          <img src="https://media.licdn.com/dms/image/v2/D4E03AQEJ7376wM9Nbw/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1673975845114?e=1741219200&v=beta&t=HIVUcQf4qkx59niyXz2NThMYjUNyl47GMwAo42yyOKw" 
+          width="100"  style="display:block; margin-bottom:30px;text-align: center;">
+        </a>
+        <h1 style="font-size:18px; line-height:24px; font-weight:bold; color:#666666;">
+         ${title}
+        </h1>
+        <hr style="color:#666666;">
+        <p style="font-size:16px; line-height:24px; color:#666666; margin-bottom:30px;">
+            ${content}
+        </p>
+        <p style="font-size:16px; line-height:24px; color:#666666; margin-bottom:30px;">
+        ${renderLink(redirectLink)}
+        </p>
+        <hr style="border:none; height:1px; color:#dddddd; background:#dddddd; width:100%; margin-bottom:20px;">
+        <p style="font-size:12px; line-height:18px; color:#999999; margin-bottom:10px;">
+          <a href="https://grower.com"
+             style="font-size:12px; line-height:18px; color:#666666; font-weight:bold;"> grower.com</a>
+             +237 683 411 151 |  Email: contact@grower.com <br>
+        </p>
+      </div>
+      </center>  
+    </body>
+  </html>
+      `
+  }
+  
+module.exports = buildEmailTemplate;

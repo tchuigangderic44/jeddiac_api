@@ -18,6 +18,20 @@ function getAdminRouter(module) {
     // ==========================================
     // ADMIN USER MANAGEMENT (TOUTES PROTÉGÉES PAR MIDDLEWARES)
     // ==========================================
+    // ADMIN DASHBOARD & OVERVIEW STATS
+    // ==========================================
+    router.get(
+        "/admin/stats",
+        protectRoute,
+        onlyAdmin,
+        errorHandler(adminModule.getStats)
+    );
+
+    router.get(
+        "/overview-stats",
+        errorHandler(adminModule.getPublicStats)
+    );
+
     router.post(
         "/admin/users",
         protectRoute,

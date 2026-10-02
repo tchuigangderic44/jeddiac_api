@@ -33,17 +33,23 @@ function getNewsModule({model} = {}) {
     async function createNews(req, res) {
         const {
             category,
+            categoryEn,
             content,
+            contentEn,
             coverImage,
             publishedAt,
             slug,
             status = contentStatuses.active,
             summary,
+            summaryEn,
             tags,
-            title
+            tagsEn,
+            title,
+            titleEn
         } = req.body;
 
-        const uploadedImage = req.files?.coverImage?.[0]?.path || req.file?.path;
+        const uploadedImage = req.files?.coverImage?.[0]?.path || req.files?.image?.[0]?.path || req.file?.path;
+        const coverImageToSave = uploadedImage || coverImage || req.body.image;
         const authorId = req.user?.token?.id;
 
         if (!title || !content) {
@@ -55,14 +61,19 @@ function getNewsModule({model} = {}) {
         const newsItem = await newsModel.create({
             authorId,
             category,
+            categoryEn,
             content,
-            coverImage: uploadedImage || coverImage,
+            contentEn,
+            coverImage: coverImageToSave,
             publishedAt: publishedAt || new Date(),
             slug,
             status,
             summary,
+            summaryEn,
             tags,
-            title
+            tagsEn,
+            title,
+            titleEn
         });
 
         res.status(201).json({
@@ -102,14 +113,19 @@ function getNewsModule({model} = {}) {
             return sendResponse(res, errors.notFound);
         }
 
-        const uploadedImage = req.files?.coverImage?.[0]?.path || req.file?.path;
+        const uploadedImage = req.files?.coverImage?.[0]?.path || req.files?.image?.[0]?.path || req.file?.path;
         const allowedProps = [
             "title",
+            "titleEn",
             "slug",
             "summary",
+            "summaryEn",
             "content",
+            "contentEn",
             "category",
+            "categoryEn",
             "tags",
+            "tagsEn",
             "status",
             "publishedAt"
         ];
@@ -122,6 +138,10 @@ function getNewsModule({model} = {}) {
 
         if (uploadedImage) {
             newsItem.coverImage = uploadedImage;
+        } else if (req.body.coverImage !== undefined) {
+            newsItem.coverImage = req.body.coverImage;
+        } else if (req.body.image !== undefined) {
+            newsItem.coverImage = req.body.image;
         }
 
         await newsItem.save();

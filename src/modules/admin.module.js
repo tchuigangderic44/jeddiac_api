@@ -1,4 +1,4 @@
-const {User} = require("../models");
+const {User, Article, News, Agenda, Contact, Newsletter, Mission} = require("../models");
 const {errors} = require("../utils/system-messages");
 const {success, userStatuses} = require("../utils/config");
 const {sendResponse} = require("../utils/helpers");
@@ -210,11 +210,76 @@ function getAdminModule({associatedModel} = {}) {
         });
     }
 
+    // Dashboard Statistics (Admin)
+    async function getStats(req, res) {
+        const [
+            totalArticles,
+            totalNews,
+            totalAgendas,
+            totalContacts,
+            unreadContacts,
+            totalNewsletters,
+            totalUsers
+        ] = await Promise.all([
+            Article.count().catch(() => 0),
+            News.count().catch(() => 0),
+            Agenda.count().catch(() => 0),
+            Contact.count().catch(() => 0),
+            Contact.count({where: {isRead: false}}).catch(() => 0),
+            Newsletter.count().catch(() => 0),
+            User.count().catch(() => 0)
+        ]);
+
+        const [recentContacts, recentArticles, recentNews, upcomingAgendas] = await Promise.all([
+            Contact.findAll({order: [["createdAt", "DESC"]], limit: 5}).catch(() => []),
+            Article.findAll({order: [["createdAt", "DESC"]], limit: 5}).catch(() => []),
+            News.findAll({order: [["createdAt", "DESC"]], limit: 5}).catch(() => []),
+            Agenda.findAll({order: [["startDate", "ASC"]], limit: 5}).catch(() => [])
+        ]);
+
+        res.status(200).json({
+            kpi: {
+                totalArticles,
+                totalNews,
+                totalAgendas,
+                totalContacts,
+                unreadContacts,
+                totalNewsletters,
+                totalUsers
+            },
+            recentArticles,
+            recentContacts,
+            recentNews,
+            upcomingAgendas
+        });
+    }
+
+    // Public Organization Overview
+    async function getPublicStats(req, res) {
+        const [totalArticles, totalNews, totalAgendas] = await Promise.all([
+            Article.count({where: {status: "active"}}).catch(() => 0),
+            News.count({where: {status: "active"}}).catch(() => 0),
+            Agenda.count({where: {status: "active"}}).catch(() => 0)
+        ]);
+
+        res.status(200).json({
+            actualitesCount: totalNews,
+            articlesPublies: totalArticles,
+            evenementsCount: totalAgendas,
+            journalistesCibles: 20000,
+            paysAfriqueCentrale: 6,
+            regionsCameroun: 10,
+            structuresPartenaires: 90
+        });
+    }
+
     return Object.freeze({
         activateUser,
         createUser,
         deactivateUser,
         deleteUser,
+        getPublicStats,
+        getStats,
         getUserById,
         getUsers,
         logoutUser,

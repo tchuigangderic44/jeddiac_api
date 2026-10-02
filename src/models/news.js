@@ -19,7 +19,9 @@ function slugify(text) {
 const schema = {
     authorId: DataTypes.UUID,
     category: DataTypes.STRING,
+    categoryEn: DataTypes.STRING,
     content: required(DataTypes.TEXT),
+    contentEn: DataTypes.TEXT,
     coverImage: DataTypes.STRING,
     id: uuidType(),
     publishedAt: {
@@ -32,8 +34,11 @@ const schema = {
     },
     status: enumType(contentStatuses, contentStatuses.active),
     summary: DataTypes.TEXT,
+    summaryEn: DataTypes.TEXT,
     tags: DataTypes.STRING,
-    title: required(DataTypes.STRING)
+    tagsEn: DataTypes.STRING,
+    title: required(DataTypes.STRING),
+    titleEn: DataTypes.STRING
 };
 
 const allowedProps = Object.keys(schema);
@@ -98,9 +103,13 @@ function defineNewsModel(connection) {
             clauses.push({
                 [Op.or]: [
                     {title: {[Op.like]: pattern}},
+                    {titleEn: {[Op.like]: pattern}},
                     {summary: {[Op.like]: pattern}},
+                    {summaryEn: {[Op.like]: pattern}},
                     {content: {[Op.like]: pattern}},
-                    {tags: {[Op.like]: pattern}}
+                    {contentEn: {[Op.like]: pattern}},
+                    {tags: {[Op.like]: pattern}},
+                    {tagsEn: {[Op.like]: pattern}}
                 ]
             });
         }

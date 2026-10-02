@@ -8,6 +8,10 @@ const newsUpload = hashedUploadHandler({
     coverImage: {
         folderPath: "public/uploads/news/",
         validator: imageValidator
+    },
+    image: {
+        folderPath: "public/uploads/news/",
+        validator: imageValidator
     }
 });
 
@@ -36,7 +40,7 @@ function getNewsRouter(module) {
         "/admin/news",
         protectRoute,
         onlyAdmin,
-        newsUpload.fields([{maxCount: 1, name: "coverImage"}]),
+        newsUpload.fields([{maxCount: 1, name: "coverImage"}, {maxCount: 1, name: "image"}]),
         errorHandler(newsModule.createNews)
     );
 
@@ -59,7 +63,7 @@ function getNewsRouter(module) {
         "/admin/news/:id",
         protectRoute,
         onlyAdmin,
-        newsUpload.fields([{maxCount: 1, name: "coverImage"}]),
+        newsUpload.fields([{maxCount: 1, name: "coverImage"}, {maxCount: 1, name: "image"}]),
         errorHandler(newsModule.updateNews)
     );
 
@@ -67,7 +71,7 @@ function getNewsRouter(module) {
         "/admin/news/:id",
         protectRoute,
         onlyAdmin,
-        newsUpload.fields([{maxCount: 1, name: "coverImage"}]),
+        newsUpload.fields([{maxCount: 1, name: "coverImage"}, {maxCount: 1, name: "image"}]),
         errorHandler(newsModule.updateNews)
     );
 
@@ -79,7 +83,21 @@ function getNewsRouter(module) {
     );
 
     router.patch(
+        "/admin/news/:id/deactivate",
+        protectRoute,
+        onlyAdmin,
+        errorHandler(newsModule.suspendNews)
+    );
+
+    router.patch(
         "/admin/news/:id/reactivate",
+        protectRoute,
+        onlyAdmin,
+        errorHandler(newsModule.reactivateNews)
+    );
+
+    router.patch(
+        "/admin/news/:id/activate",
         protectRoute,
         onlyAdmin,
         errorHandler(newsModule.reactivateNews)

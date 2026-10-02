@@ -10,10 +10,11 @@ const {
   getPaymentConfig
 } = require("../utils/config");
 const {ValidationError} = require("sequelize");
-const {
-  TOKEN_EXP: expiration = 9996000008,
-  JWT_SECRET: secret = "default333secret"
-} = process.env;
+const rawTokenExp = process.env.TOKEN_EXP || "24h";
+const expiration = (typeof rawTokenExp === "string" && /^\d+$/.test(rawTokenExp.trim()))
+  ? parseInt(rawTokenExp.trim(), 10)
+  : (rawTokenExp || "24h");
+const secret = process.env.JWT_SECRET || "default333secret";
 const CustomEmitter = function (name) {
   const self = this;
   this.name = name;
@@ -145,10 +146,17 @@ function jwtWrapper(expiresIn = expiration) {
   };
 }
 function pathToURL(filePath) {
-  let rootDir;
   if (typeof filePath === "string" && filePath.length > 0) {
-      rootDir = path.normalize(path.dirname(filePath)).split(path.sep).at(-1);
-      return "/" + rootDir + "/" + path.basename(filePath);
+    if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+      return filePath;
+    }
+    let normalized = path.normalize(filePath).replace(/\\/g, "/");
+    if (normalized.startsWith("public/")) {
+      normalized = normalized.substring("public/".length);
+    } else if (normalized.startsWith("./public/")) {
+      normalized = normalized.substring("./public/".length);
+    }
+    return "/" + normalized.replace(/^\/+/, "");
   }
 }
 function propertiesPicker(object) {

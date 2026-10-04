@@ -34,8 +34,10 @@ const contentStatuses = {
 const contactStatuses = {
     new: "new",
     read: "read",
+    in_review: "in_review",
     archived: "archived",
-    replied: "replied"
+    replied: "replied",
+    validated: "validated"
 };
 
 const newsletterStatuses = {
@@ -196,6 +198,36 @@ const success = {
         message: {
             en: "Article deleted successfully!",
             fr: "Article supprimé avec succès!"
+        }
+    },
+    podcastCreated: {
+        message: {
+            en: "Podcast created successfully!",
+            fr: "Podcast créé avec succès!"
+        }
+    },
+    podcastUpdated: {
+        message: {
+            en: "Podcast updated successfully!",
+            fr: "Podcast mis à jour avec succès!"
+        }
+    },
+    podcastSuspended: {
+        message: {
+            en: "Podcast suspended successfully!",
+            fr: "Podcast suspendu avec succès!"
+        }
+    },
+    podcastReactivated: {
+        message: {
+            en: "Podcast reactivated successfully!",
+            fr: "Podcast réactivé avec succès!"
+        }
+    },
+    podcastDeleted: {
+        message: {
+            en: "Podcast deleted successfully!",
+            fr: "Podcast supprimé avec succès!"
         }
     },
     contactSent: {

@@ -10,6 +10,7 @@ const Mission = require("./mission.js")(connection);
 const Article = require("./article.js")(connection);
 const Contact = require("./contact.js")(connection);
 const Newsletter = require("./newsletter.js")(connection);
+const Podcast = require("./podcast.js")(connection);
 
 // Associations
 User.hasMany(News, {
@@ -39,6 +40,15 @@ Article.belongsTo(User, {
     foreignKey: "authorId"
 });
 
+User.hasMany(Podcast, {
+    as: "Podcasts",
+    foreignKey: "authorId"
+});
+Podcast.belongsTo(User, {
+    as: "Author",
+    foreignKey: "authorId"
+});
+
 module.exports = Object.freeze({
     Agenda,
     Article,
@@ -48,6 +58,7 @@ module.exports = Object.freeze({
     Mission,
     News,
     Newsletter,
+    Podcast,
     Settings,
     User
 });

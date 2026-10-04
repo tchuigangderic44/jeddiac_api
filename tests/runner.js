@@ -98,6 +98,7 @@ async function runTestSuite() {
     const partnerEmail = `marie.curie_${ts}@partner.org`;
     const newsletterEmail = `visiteur_${ts}@domain.com`;
 
+    let memberId = "";
     let adminToken = "";
     let userToken = "";
     let partnerId = "";
@@ -152,6 +153,7 @@ async function runTestSuite() {
             password: "Password@123"
         });
         assert(res.status === 200 && res.body.valid === true, "POST /auth/login allows member login (200)");
+        memberId = res.body.user && res.body.user.id;
 
         // 1.5 Password Change (Authenticated)
         res = await request("POST", "/auth/change-password", {
@@ -490,6 +492,84 @@ async function runTestSuite() {
         // 9.5 Revoked Token Rejected
         res = await request("GET", "/user/profile", null, { Authorization: `Bearer ${userToken}` });
         assert(res.status === 401, "Revoked token is rejected on subsequent calls (401 Unauthorized)");
+
+        console.log("");
+
+        // =========================================================================
+        // 10. PODCASTS ENDPOINTS TESTS
+        // =========================================================================
+        console.log("[10] Testing Podcasts Endpoints");
+
+        let testPodcastId = null;
+        let testPodcastSlug = null;
+
+        // 10.1 Admin creates podcast
+        res = await request("POST", "/admin/podcasts", {
+            title: "Test Podcast Écologique",
+            titleEn: "Test Ecological Podcast",
+            series: "Série Test · Épisode 99",
+            seriesEn: "Test Series · Episode 99",
+            duration: "15:00",
+            author: "Reporter Junior Yaoundé",
+            authorEn: "Junior Reporter Yaoundé",
+            topic: "Climat & Forêts",
+            topicEn: "Climate & Forests",
+            description: "Description audio en français",
+            descriptionEn: "Audio description in English",
+            cover: "https://example.com/cover.jpg",
+            audioUrl: "https://example.com/audio.mp3"
+        }, { Authorization: `Bearer ${adminToken}` });
+        assert(res.status === 201 && res.body.data.id, "POST /admin/podcasts creates podcast (201)");
+        testPodcastId = res.body.data.id;
+        testPodcastSlug = res.body.data.slug;
+
+        // 10.2 Admin lists podcasts
+        res = await request("GET", "/admin/podcasts", null, { Authorization: `Bearer ${adminToken}` });
+        assert(res.status === 200 && Array.isArray(res.body.values), "GET /admin/podcasts lists all podcasts (200)");
+
+        // 10.3 Public lists active podcasts
+        res = await request("GET", "/podcasts?limit=4");
+        assert(res.status === 200 && Array.isArray(res.body.values), "GET /podcasts returns public active podcasts (200)");
+        assert(res.body.values.length <= 4, "GET /podcasts respects limit parameter");
+
+        // 10.4 Public gets podcast by slug
+        res = await request("GET", `/podcasts/${testPodcastSlug}`);
+        assert(res.status === 200 && res.body.id === testPodcastId, "GET /podcasts/:idOrSlug retrieves podcast details (200)");
+
+        // 10.5 Admin updates podcast
+        res = await request("PUT", `/admin/podcasts/${testPodcastId}`, {
+            title: "Test Podcast Écologique Mis à Jour"
+        }, { Authorization: `Bearer ${adminToken}` });
+        assert(res.status === 200 && res.body.data.title === "Test Podcast Écologique Mis à Jour", "PUT /admin/podcasts/:id updates podcast (200)");
+
+        // 10.6 Admin suspends podcast
+        res = await request("PATCH", `/admin/podcasts/${testPodcastId}/suspend`, null, { Authorization: `Bearer ${adminToken}` });
+        assert(res.status === 200 && res.body.suspended === true, "PATCH /admin/podcasts/:id/suspend suspends podcast (200)");
+
+        // 10.7 Public cannot get suspended podcast
+        res = await request("GET", `/podcasts/${testPodcastSlug}`);
+        assert(res.status === 404, "GET /podcasts/:idOrSlug returns 404 for suspended podcast to public");
+
+        // 10.8 Admin reactivates podcast
+        res = await request("PATCH", `/admin/podcasts/${testPodcastId}/reactivate`, null, { Authorization: `Bearer ${adminToken}` });
+        assert(res.status === 200 && res.body.reactivated === true, "PATCH /admin/podcasts/:id/reactivate reactivates podcast (200)");
+
+        // 10.9 Admin deletes podcast
+        res = await request("DELETE", `/admin/podcasts/${testPodcastId}`, null, { Authorization: `Bearer ${adminToken}` });
+        assert(res.status === 200 && res.body.deleted === true, "DELETE /admin/podcasts/:id deletes podcast (200)");
+
+
+        // Teardown test entities to maintain zero residue in database
+        if (adminToken) {
+            if (memberId) await request("DELETE", `/admin/users/${memberId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
+            if (partnerId) await request("DELETE", `/admin/users/${partnerId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
+            if (newsId) await request("DELETE", `/admin/news/${newsId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
+            if (eventId) await request("DELETE", `/admin/agenda/${eventId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
+            if (missionId) await request("DELETE", `/admin/missions/${missionId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
+            if (articleId) await request("DELETE", `/admin/articles/${articleId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
+            if (contactId) await request("DELETE", `/admin/contacts/${contactId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
+            if (subscriberId) await request("DELETE", `/admin/newsletter/subscribers/${subscriberId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
+        }
 
         console.log("\n==========================================================");
         console.log(`RESULTS: Total: ${stats.total} | Passed: ${stats.passed} | Failed: ${stats.failed}`);

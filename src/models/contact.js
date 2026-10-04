@@ -8,6 +8,8 @@ const {propertiesPicker} = require("../utils/helpers");
 
 const schema = {
     adminNotes: DataTypes.TEXT,
+    category: DataTypes.STRING,
+    country: DataTypes.STRING,
     email: {
         allowNull: false,
         type: DataTypes.STRING,
@@ -22,10 +24,15 @@ const schema = {
     name: required(DataTypes.STRING),
     phone: DataTypes.STRING,
     status: enumType(contactStatuses, contactStatuses.new),
-    subject: required(DataTypes.STRING)
+    structureName: DataTypes.STRING,
+    subject: required(DataTypes.STRING),
+    type: {
+        defaultValue: "contact",
+        type: DataTypes.STRING
+    }
 };
 
-const allowedProps = Object.keys(schema);
+const allowedProps = Object.keys(schema).concat(["createdAt", "updatedAt"]);
 
 function defineContactModel(connection) {
     const contact = connection.define("contact", schema, {
@@ -37,11 +44,13 @@ function defineContactModel(connection) {
     };
 
     contact.getAll = async function ({
+        category,
         isRead,
         limit = 10,
         offset = 0,
         search,
-        status
+        status,
+        type
     }) {
         let query = {
             limit: parseInt(limit, 10) || 10,
@@ -54,6 +63,12 @@ function defineContactModel(connection) {
         if (status) {
             clauses.push({status});
         }
+        if (type) {
+            clauses.push({type});
+        }
+        if (category) {
+            clauses.push({category});
+        }
         if (isRead !== undefined && isRead !== null) {
             clauses.push({isRead: isRead === true || isRead === "true"});
         }
@@ -63,8 +78,12 @@ function defineContactModel(connection) {
                 [Op.or]: [
                     {name: {[Op.like]: pattern}},
                     {email: {[Op.like]: pattern}},
+                    {phone: {[Op.like]: pattern}},
                     {subject: {[Op.like]: pattern}},
-                    {message: {[Op.like]: pattern}}
+                    {message: {[Op.like]: pattern}},
+                    {structureName: {[Op.like]: pattern}},
+                    {country: {[Op.like]: pattern}},
+                    {category: {[Op.like]: pattern}}
                 ]
             });
         }

@@ -35,7 +35,17 @@ const schema = {
     password: DataTypes.STRING,
     phone: DataTypes.STRING,
     role: enumType(roleList, availableRoles.memberRole),
-    status: enumType(userStatuses, userStatuses.activated)
+    status: enumType(userStatuses, userStatuses.activated),
+    category: DataTypes.STRING,
+    pole: DataTypes.STRING,
+    poleEn: DataTypes.STRING,
+    metierEn: DataTypes.STRING,
+    location: DataTypes.STRING,
+    country: DataTypes.STRING,
+    bibliographieEn: DataTypes.TEXT,
+    conseilEn: DataTypes.TEXT,
+    contributions: DataTypes.TEXT,
+    contributionsEn: DataTypes.TEXT
 };
 
 const excludedProps = ["password"];
@@ -44,11 +54,23 @@ const publicProps = [
     "firstName",
     "lastName",
     "role",
+    "category",
     "metier",
+    "metierEn",
+    "pole",
+    "poleEn",
+    "location",
+    "country",
     "bibliographie",
+    "bibliographieEn",
+    "conseil",
+    "conseilEn",
+    "contributions",
+    "contributionsEn",
     "avatar",
     "linkedin",
-    "conseil"
+    "email",
+    "phone"
 ];
 
 function defineUserModel(connection) {
@@ -144,7 +166,13 @@ function defineUserModel(connection) {
                     {firstName: {[Op.like]: pattern}},
                     {lastName: {[Op.like]: pattern}},
                     {email: {[Op.like]: pattern}},
-                    {metier: {[Op.like]: pattern}}
+                    {metier: {[Op.like]: pattern}},
+                    {metierEn: {[Op.like]: pattern}},
+                    {pole: {[Op.like]: pattern}},
+                    {poleEn: {[Op.like]: pattern}},
+                    {category: {[Op.like]: pattern}},
+                    {location: {[Op.like]: pattern}},
+                    {country: {[Op.like]: pattern}}
                 ]
             });
         }
@@ -190,7 +218,13 @@ function defineUserModel(connection) {
                 [Op.or]: [
                     {firstName: {[Op.like]: pattern}},
                     {lastName: {[Op.like]: pattern}},
-                    {metier: {[Op.like]: pattern}}
+                    {metier: {[Op.like]: pattern}},
+                    {metierEn: {[Op.like]: pattern}},
+                    {pole: {[Op.like]: pattern}},
+                    {poleEn: {[Op.like]: pattern}},
+                    {category: {[Op.like]: pattern}},
+                    {location: {[Op.like]: pattern}},
+                    {country: {[Op.like]: pattern}}
                 ]
             });
         }

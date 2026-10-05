@@ -106,37 +106,7 @@ function getAdminRouter(module) {
         errorHandler(adminModule.deleteUser)
     );
 
-    // ==========================================
-    // RETRO-COMPATIBILITÉ DES ROUTES ADMIN
-    // ==========================================
-    router.get(
-        "/admin/user-all",
-        protectRoute,
-        onlyAdmin,
-        parsePaginationHeaders,
-        errorHandler(adminModule.getUsers)
-    );
 
-    router.post(
-        "/admin/block-user",
-        protectRoute,
-        onlyAdmin,
-        errorHandler(adminModule.deactivateUser)
-    );
-
-    router.post(
-        "/admin/activate-user",
-        protectRoute,
-        onlyAdmin,
-        errorHandler(adminModule.activateUser)
-    );
-
-    router.post(
-        "/admin/logout",
-        protectRoute,
-        onlyAdmin,
-        errorHandler(adminModule.logoutUser)
-    );
 
     return router;
 }

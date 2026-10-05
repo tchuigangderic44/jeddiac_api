@@ -15,7 +15,6 @@ function getNewsletterRouter(module) {
 
     // ==========================================
     // PUBLIC ROUTES (VISITEURS)
-    // Sécurisées par validateRequiredFields et validateEmail
     // ==========================================
     router.post(
         "/newsletter/subscribe",
@@ -24,18 +23,11 @@ function getNewsletterRouter(module) {
         errorHandler(newsletterModule.subscribeNewsletter)
     );
 
-    router.post(
-        "/newsletter/unsubscribe",
-        validateRequiredFields(["email"]),
-        validateEmail("email"),
-        errorHandler(newsletterModule.unsubscribeNewsletter)
-    );
-
     // ==========================================
     // ADMIN ROUTES (PROTÉGÉES PAR MIDDLEWARES)
     // ==========================================
     router.get(
-        "/admin/newsletter/subscribers",
+        ["/admin/newsletter", "/admin/newsletter/subscribers"],
         protectRoute,
         onlyAdmin,
         parsePaginationHeaders,
@@ -43,7 +35,7 @@ function getNewsletterRouter(module) {
     );
 
     router.delete(
-        "/admin/newsletter/subscribers/:id",
+        ["/admin/newsletter/:id", "/admin/newsletter/subscribers/:id"],
         protectRoute,
         onlyAdmin,
         errorHandler(newsletterModule.deleteNewsletterSubscriber)

@@ -32,6 +32,20 @@ function getAdminRouter(module) {
         errorHandler(adminModule.getPublicStats)
     );
 
+    router.put(
+        "/admin/overview-stats",
+        protectRoute,
+        onlyAdmin,
+        errorHandler(adminModule.updatePublicStats)
+    );
+
+    router.patch(
+        "/admin/overview-stats",
+        protectRoute,
+        onlyAdmin,
+        errorHandler(adminModule.updatePublicStats)
+    );
+
     router.post(
         "/admin/users",
         protectRoute,

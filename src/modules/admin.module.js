@@ -1,4 +1,4 @@
-const {User, News, Agenda, Contact, Newsletter, Mission} = require("../models");
+const {User, News, Agenda, Contact, Newsletter, Mission, Settings} = require("../models");
 const {errors} = require("../utils/system-messages");
 const {success, userStatuses} = require("../utils/config");
 const {sendResponse} = require("../utils/helpers");
@@ -279,8 +279,84 @@ function getAdminModule({associatedModel} = {}) {
         });
     }
 
-    // Public Organization Overview
+    // Public Organization Overview & Hero Metrics
     async function getPublicStats(req, res) {
+        const [totalNews, totalAgendas, heroMetricsSetting] = await Promise.all([
+            News.count({where: {status: "active"}}).catch(() => 0),
+            Agenda.count({where: {status: "active"}}).catch(() => 0),
+            Settings.findOne({where: {type: "hero-metrics"}}).catch(() => null)
+        ]);
+
+        const custom = heroMetricsSetting && heroMetricsSetting.value
+            ? (typeof heroMetricsSetting.value === "string" ? JSON.parse(heroMetricsSetting.value) : heroMetricsSetting.value)
+            : {};
+
+        res.status(200).json({
+            actualitesCount: totalNews,
+            evenementsCount: totalAgendas,
+            journalistesCibles: custom.journalistesCibles !== undefined ? Number(custom.journalistesCibles) : 20000,
+            paysAfriqueCentrale: custom.paysAfriqueCentrale !== undefined ? Number(custom.paysAfriqueCentrale) : 6,
+            regionsCameroun: custom.regionsCameroun !== undefined ? Number(custom.regionsCameroun) : 10,
+            structuresPartenaires: custom.structuresPartenaires !== undefined ? Number(custom.structuresPartenaires) : 90,
+            labelYouthFr: custom.labelYouthFr || "Jeunes mobilisés",
+            labelYouthEn: custom.labelYouthEn || "Youth mobilized",
+            labelPartnersFr: custom.labelPartnersFr || "Clubs & radios partenaires",
+            labelPartnersEn: custom.labelPartnersEn || "Partner clubs & radios",
+            labelRegionsFr: custom.labelRegionsFr || "Régions couvertes",
+            labelRegionsEn: custom.labelRegionsEn || "Covered regions",
+            labelCountriesFr: custom.labelCountriesFr || "Pays du Bassin",
+            labelCountriesEn: custom.labelCountriesEn || "Congo Basin countries"
+        });
+    }
+
+    // Admin: Update Hero & Overview Metrics
+    async function updatePublicStats(req, res) {
+        const {
+            journalistesCibles,
+            paysAfriqueCentrale,
+            regionsCameroun,
+            structuresPartenaires,
+            labelYouthFr,
+            labelYouthEn,
+            labelPartnersFr,
+            labelPartnersEn,
+            labelRegionsFr,
+            labelRegionsEn,
+            labelCountriesFr,
+            labelCountriesEn
+        } = req.body;
+
+        let setting = await Settings.findOne({where: {type: "hero-metrics"}}).catch(() => null);
+        const currentVal = setting && setting.value
+            ? (typeof setting.value === "string" ? JSON.parse(setting.value) : setting.value)
+            : {};
+
+        const newVal = {
+            ...currentVal,
+            ...(journalistesCibles !== undefined && {journalistesCibles: Number(journalistesCibles)}),
+            ...(paysAfriqueCentrale !== undefined && {paysAfriqueCentrale: Number(paysAfriqueCentrale)}),
+            ...(regionsCameroun !== undefined && {regionsCameroun: Number(regionsCameroun)}),
+            ...(structuresPartenaires !== undefined && {structuresPartenaires: Number(structuresPartenaires)}),
+            ...(labelYouthFr && {labelYouthFr}),
+            ...(labelYouthEn && {labelYouthEn}),
+            ...(labelPartnersFr && {labelPartnersFr}),
+            ...(labelPartnersEn && {labelPartnersEn}),
+            ...(labelRegionsFr && {labelRegionsFr}),
+            ...(labelRegionsEn && {labelRegionsEn}),
+            ...(labelCountriesFr && {labelCountriesFr}),
+            ...(labelCountriesEn && {labelCountriesEn})
+        };
+
+        if (setting) {
+            setting.value = newVal;
+            await setting.save();
+        } else {
+            setting = await Settings.create({
+                type: "hero-metrics",
+                value: newVal
+            });
+        }
+
         const [totalNews, totalAgendas] = await Promise.all([
             News.count({where: {status: "active"}}).catch(() => 0),
             Agenda.count({where: {status: "active"}}).catch(() => 0)
@@ -289,10 +365,11 @@ function getAdminModule({associatedModel} = {}) {
         res.status(200).json({
             actualitesCount: totalNews,
             evenementsCount: totalAgendas,
-            journalistesCibles: 20000,
-            paysAfriqueCentrale: 6,
-            regionsCameroun: 10,
-            structuresPartenaires: 90
+            ...newVal,
+            message: {
+                en: "Impact metrics updated successfully",
+                fr: "Indicateurs d'impact mis à jour avec succès"
+            }
         });
     }
 
@@ -302,6 +379,7 @@ function getAdminModule({associatedModel} = {}) {
         deactivateUser,
         deleteUser,
         getPublicStats,
+        updatePublicStats,
         getStats,
         getUserById,
         getUsers,

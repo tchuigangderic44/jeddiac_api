@@ -37,7 +37,8 @@ const contactStatuses = {
     in_review: "in_review",
     archived: "archived",
     replied: "replied",
-    validated: "validated"
+    validated: "validated",
+    processed: "processed"
 };
 
 const newsletterStatuses = {

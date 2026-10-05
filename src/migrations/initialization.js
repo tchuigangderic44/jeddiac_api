@@ -17,7 +17,11 @@ const queryInterface = models.connection.getQueryInterface();
 async function createTable(model) {
     if (!model) return;
     const tableName = model.getTableName();
-    await queryInterface.createTable(tableName, model.getAttributes());
+    try {
+        await queryInterface.createTable(tableName, model.getAttributes());
+    } catch (e) {
+        // Ignore if table already exists
+    }
 }
 
 async function createTables() {

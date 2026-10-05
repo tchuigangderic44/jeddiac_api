@@ -17,13 +17,21 @@ function slugify(text) {
 }
 
 const schema = {
+    audience: DataTypes.STRING,
+    audienceEn: DataTypes.STRING,
     authorId: DataTypes.UUID,
     coverImage: DataTypes.STRING,
     description: DataTypes.TEXT,
+    descriptionEn: DataTypes.TEXT,
+    duration: DataTypes.STRING,
+    durationEn: DataTypes.STRING,
     endDate: DataTypes.DATE,
     id: uuidType(),
     location: DataTypes.STRING,
+    locationEn: DataTypes.STRING,
     registrationLink: DataTypes.STRING,
+    seats: DataTypes.STRING,
+    seatsEn: DataTypes.STRING,
     slug: {
         type: DataTypes.STRING,
         unique: true
@@ -31,7 +39,9 @@ const schema = {
     startDate: required(DataTypes.DATE),
     status: enumType(contentStatuses, contentStatuses.active),
     title: required(DataTypes.STRING),
-    type: DataTypes.STRING
+    titleEn: DataTypes.STRING,
+    type: DataTypes.STRING,
+    typeEn: DataTypes.STRING
 };
 
 const allowedProps = Object.keys(schema);
@@ -112,8 +122,13 @@ function defineAgendaModel(connection) {
             clauses.push({
                 [Op.or]: [
                     {title: {[Op.like]: pattern}},
+                    {titleEn: {[Op.like]: pattern}},
                     {description: {[Op.like]: pattern}},
-                    {location: {[Op.like]: pattern}}
+                    {descriptionEn: {[Op.like]: pattern}},
+                    {location: {[Op.like]: pattern}},
+                    {locationEn: {[Op.like]: pattern}},
+                    {type: {[Op.like]: pattern}},
+                    {typeEn: {[Op.like]: pattern}}
                 ]
             });
         }

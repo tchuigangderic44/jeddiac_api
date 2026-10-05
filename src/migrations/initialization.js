@@ -27,7 +27,6 @@ async function createTables() {
     await createTable(models.News);
     await createTable(models.Agenda);
     await createTable(models.Mission);
-    await createTable(models.Article);
     await createTable(models.Contact);
     await createTable(models.Newsletter);
     await createTable(models.Podcast);
@@ -38,7 +37,6 @@ async function dropTables() {
         models.Podcast,
         models.Newsletter,
         models.Contact,
-        models.Article,
         models.Mission,
         models.Agenda,
         models.News,
@@ -172,11 +170,107 @@ async function createDefaultPodcasts() {
     await models.Podcast.bulkCreate(initialPodcasts, {ignoreDuplicates: true});
 }
 
+async function createDefaultAgendas() {
+    if (!models.Agenda) return;
+    const count = await models.Agenda.count();
+    if (count > 0) return;
+
+    const initialAgendas = [
+        {
+            id: "714c21da-0ad6-4045-899f-f1dc64aee3f0",
+            title: "Session Inaugurale de Formation : Investigation Climat & Écriture de Solutions",
+            titleEn: "Inaugural Training Session: Climate Investigation & Solutions Reporting",
+            type: "Formation Régionale",
+            typeEn: "Regional Training",
+            description: "Atelier intensif de 3 jours réunissant 40 délégués de clubs de presse scolaires et universitaires : cartographie des sources scientifiques, déconstruction des fausses nouvelles écologiques et techniques d'interview de terrain.",
+            descriptionEn: "3-day intensive workshop convening 40 high school and university press club delegates: mapping scientific sources, debunking ecological disinformation, and conducting field interview techniques.",
+            location: "Yaoundé · Centre Régional des Médias & Hybride",
+            locationEn: "Yaoundé · Regional Media Hub & Hybrid",
+            duration: "Session intensive 3 jours",
+            durationEn: "3-day intensive session",
+            startDate: "2026-10-11T09:00:00.000Z",
+            endDate: "2026-10-13T17:00:00.000Z",
+            seats: "40 places disponibles",
+            seatsEn: "40 seats available",
+            audience: "Lycéens & Étudiants",
+            audienceEn: "High school & University students",
+            registrationLink: "/candidature",
+            status: "active"
+        },
+        {
+            id: "94af7d54-674a-430f-b4ad-b13143b1a977",
+            title: "Masterclass Audio : Réaliser un Podcast Environnemental avec un Smartphone",
+            titleEn: "Audio Masterclass: Producing an Environmental Podcast with a Smartphone",
+            type: "Masterclass Virtuelle",
+            typeEn: "Virtual Masterclass",
+            description: "Apprenez les bases de la prise de son mobile, du montage audio léger avec Audacity et du storytelling sonore au cœur des forêts et des quartiers urbains africains.",
+            descriptionEn: "Master the fundamentals of mobile field recording, lightweight audio editing with Audacity, and immersive sonic storytelling across African forests and urban neighborhoods.",
+            location: "En direct sur JEDDIAC Live & Radios partenaires",
+            locationEn: "Live on JEDDIAC Stream & Partner Radios",
+            duration: "Masterclass 2h30 + Exercice pratique",
+            durationEn: "2.5-hour masterclass + practical exercise",
+            startDate: "2026-10-19T14:00:00.000Z",
+            endDate: "2026-10-19T16:30:00.000Z",
+            seats: "Accès libre sur inscription",
+            seatsEn: "Open access upon registration",
+            audience: "Jeunes reporters & animateurs radio",
+            audienceEn: "Young reporters & radio hosts",
+            registrationLink: "/candidature",
+            status: "active"
+        },
+        {
+            id: "7ae15ac2-c483-42b8-a874-1040502e1f24",
+            title: "Forum Sous-Régional des Jeunes Médias du Bassin du Congo",
+            titleEn: "Congo Basin Youth Media Sub-Regional Forum",
+            type: "Conférence Régionale",
+            typeEn: "Regional Conference",
+            description: "Rencontre plénière des délégations du Cameroun, du Gabon, de RDC, du Congo-Brazzaville, de Centrafrique et du Tchad pour signer le Pacte de la Jeunesse Médiatique pour la Durabilité.",
+            descriptionEn: "Plenary summit of youth delegations from Cameroon, Gabon, DRC, Congo-Brazzaville, CAR, and Chad to sign the Youth Media Charter for Sustainability.",
+            location: "Douala & Retransmission Panafricaine",
+            locationEn: "Douala & Panafrican Broadcast",
+            duration: "Forum de 2 jours",
+            durationEn: "2-day summit",
+            startDate: "2026-11-13T08:30:00.000Z",
+            endDate: "2026-11-15T18:00:00.000Z",
+            seats: "Délégations invitées & Observateurs",
+            seatsEn: "Invited delegates & observers",
+            audience: "Chefs d'équipes & Partenaires institutionnels",
+            audienceEn: "Team leads & institutional partners",
+            registrationLink: "/candidature",
+            status: "active"
+        },
+        {
+            id: "2b9a76d8-8c01-4475-8120-6d45e5f32b8e",
+            title: "Atelier Itinérant : Tourbières du Bassin du Congo & Enquêtes Carbone",
+            titleEn: "Field Workshop: Congo Basin Peatlands & Carbon Reporting",
+            type: "Formation Régionale",
+            typeEn: "Regional Training",
+            description: "Immersion scientifique guidée par des chercheurs en écologie pour vulgariser l'importance planétaire des tourbières du Bassin du Congo auprès du grand public.",
+            descriptionEn: "Scientific field immersion guided by ecology researchers to popularize the critical global role of Congo Basin peatlands for broad audiences.",
+            location: "Kinshasa / Mbandaka & Distanciel",
+            locationEn: "Kinshasa / Mbandaka & Remote",
+            duration: "Atelier 4 jours terrain + rédaction",
+            durationEn: "4-day field workshop + newsroom writing",
+            startDate: "2026-12-05T09:00:00.000Z",
+            endDate: "2026-12-09T17:00:00.000Z",
+            seats: "25 places sur sélection",
+            seatsEn: "25 selected slots",
+            audience: "Étudiants en journalisme & sciences",
+            audienceEn: "Journalism & environmental science students",
+            registrationLink: "/candidature",
+            status: "active"
+        }
+    ];
+
+    await models.Agenda.bulkCreate(initialAgendas, {ignoreDuplicates: true});
+}
+
 async function up() {
     await createTables();
     await createDefaultUsers();
     await createDefaultSettings();
     await createDefaultPodcasts();
+    await createDefaultAgendas();
 }
 
 async function down() {

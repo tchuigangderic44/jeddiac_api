@@ -7,7 +7,6 @@ const Settings = require("./settings.js")(connection);
 const News = require("./news.js")(connection);
 const Agenda = require("./agenda.js")(connection);
 const Mission = require("./mission.js")(connection);
-const Article = require("./article.js")(connection);
 const Contact = require("./contact.js")(connection);
 const Newsletter = require("./newsletter.js")(connection);
 const Podcast = require("./podcast.js")(connection);
@@ -31,15 +30,6 @@ Agenda.belongsTo(User, {
     foreignKey: "authorId"
 });
 
-User.hasMany(Article, {
-    as: "Articles",
-    foreignKey: "authorId"
-});
-Article.belongsTo(User, {
-    as: "Author",
-    foreignKey: "authorId"
-});
-
 User.hasMany(Podcast, {
     as: "Podcasts",
     foreignKey: "authorId"
@@ -51,7 +41,6 @@ Podcast.belongsTo(User, {
 
 module.exports = Object.freeze({
     Agenda,
-    Article,
     Blacklist,
     connection,
     Contact,

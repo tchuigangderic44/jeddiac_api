@@ -5,7 +5,6 @@ const buildAdminRoutes = require("./admin.routes");
 const buildNewsRoutes = require("./news.routes");
 const buildAgendaRoutes = require("./agenda.routes");
 const buildMissionRoutes = require("./mission.routes");
-const buildArticleRoutes = require("./article.routes");
 const buildContactRoutes = require("./contact.routes");
 const buildNewsletterRoutes = require("./newsletter.routes");
 const buildPodcastRoutes = require("./podcast.routes");
@@ -13,7 +12,6 @@ const buildPodcastRoutes = require("./podcast.routes");
 function buildRoutes({
     adminRoutes,
     agendaRoutes,
-    articleRoutes,
     authRoutes,
     contactRoutes,
     missionRoutes,
@@ -28,7 +26,6 @@ function buildRoutes({
     const newsRouter = newsRoutes || buildNewsRoutes();
     const agendaRouter = agendaRoutes || buildAgendaRoutes();
     const missionRouter = missionRoutes || buildMissionRoutes();
-    const articleRouter = articleRoutes || buildArticleRoutes();
     const contactRouter = contactRoutes || buildContactRoutes();
     const newsletterRouter = newsletterRoutes || buildNewsletterRoutes();
     const podcastRouter = podcastRoutes || buildPodcastRoutes();
@@ -52,9 +49,6 @@ function buildRoutes({
 
     // 6. Missions routes (/missions, /admin/missions)
     router.use(missionRouter);
-
-    // 7. Articles / Blog routes (/articles, /admin/articles)
-    router.use(articleRouter);
 
     // 8. Contact routes (/contact, /admin/contacts)
     router.use(contactRouter);

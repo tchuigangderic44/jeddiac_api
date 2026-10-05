@@ -1,4 +1,4 @@
-const {User, Article, News, Agenda, Contact, Newsletter, Mission} = require("../models");
+const {User, News, Agenda, Contact, Newsletter, Mission} = require("../models");
 const {errors} = require("../utils/system-messages");
 const {success, userStatuses} = require("../utils/config");
 const {sendResponse} = require("../utils/helpers");
@@ -243,7 +243,6 @@ function getAdminModule({associatedModel} = {}) {
     // Dashboard Statistics (Admin)
     async function getStats(req, res) {
         const [
-            totalArticles,
             totalNews,
             totalAgendas,
             totalContacts,
@@ -251,7 +250,6 @@ function getAdminModule({associatedModel} = {}) {
             totalNewsletters,
             totalUsers
         ] = await Promise.all([
-            Article.count().catch(() => 0),
             News.count().catch(() => 0),
             Agenda.count().catch(() => 0),
             Contact.count().catch(() => 0),
@@ -260,16 +258,14 @@ function getAdminModule({associatedModel} = {}) {
             User.count().catch(() => 0)
         ]);
 
-        const [recentContacts, recentArticles, recentNews, upcomingAgendas] = await Promise.all([
+        const [recentContacts, recentNews, upcomingAgendas] = await Promise.all([
             Contact.findAll({order: [["createdAt", "DESC"]], limit: 5}).catch(() => []),
-            Article.findAll({order: [["createdAt", "DESC"]], limit: 5}).catch(() => []),
             News.findAll({order: [["createdAt", "DESC"]], limit: 5}).catch(() => []),
             Agenda.findAll({order: [["startDate", "ASC"]], limit: 5}).catch(() => [])
         ]);
 
         res.status(200).json({
             kpi: {
-                totalArticles,
                 totalNews,
                 totalAgendas,
                 totalContacts,
@@ -277,7 +273,6 @@ function getAdminModule({associatedModel} = {}) {
                 totalNewsletters,
                 totalUsers
             },
-            recentArticles,
             recentContacts,
             recentNews,
             upcomingAgendas
@@ -286,15 +281,13 @@ function getAdminModule({associatedModel} = {}) {
 
     // Public Organization Overview
     async function getPublicStats(req, res) {
-        const [totalArticles, totalNews, totalAgendas] = await Promise.all([
-            Article.count({where: {status: "active"}}).catch(() => 0),
+        const [totalNews, totalAgendas] = await Promise.all([
             News.count({where: {status: "active"}}).catch(() => 0),
             Agenda.count({where: {status: "active"}}).catch(() => 0)
         ]);
 
         res.status(200).json({
             actualitesCount: totalNews,
-            articlesPublies: totalArticles,
             evenementsCount: totalAgendas,
             journalistesCibles: 20000,
             paysAfriqueCentrale: 6,

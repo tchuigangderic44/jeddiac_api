@@ -108,8 +108,6 @@ async function runTestSuite() {
     let eventSlug = "";
     let missionId = "";
     let missionSlug = "";
-    let articleId = "";
-    let articleSlug = "";
     let contactId = "";
     let subscriberId = "";
 
@@ -343,45 +341,6 @@ async function runTestSuite() {
         console.log("");
 
         // =========================================================================
-        // 6. BLOG / ARTICLES TESTS
-        // =========================================================================
-        console.log("[6] Testing Blog Articles Endpoints");
-
-        // 6.1 Admin Creates Article
-        res = await request("POST", "/admin/articles", {
-            title: `Les Enjeux Numériques ${ts}`,
-            summary: "Analyse approfondie des mutations numériques dans le secteur associatif.",
-            content: "Le numérique transforme nos façons d'interagir, de collaborer et d'impacter nos communautés.",
-            category: "Technologie",
-            tags: "digital, impact, association"
-        }, { Authorization: `Bearer ${adminToken}` });
-        assert(res.status === 201 && res.body.data.id, "POST /admin/articles creates article (201)");
-        articleId = res.body.data.id;
-        articleSlug = res.body.data.slug;
-
-        // 6.2 Admin Lists Articles
-        res = await request("GET", "/admin/articles", null, { Authorization: `Bearer ${adminToken}` });
-        assert(res.status === 200 && res.body.values.length >= 1, "GET /admin/articles lists articles (200)");
-
-        // 6.3 Public Lists Articles
-        res = await request("GET", "/articles");
-        assert(res.status === 200 && res.body.values.length >= 1, "GET /articles lists public articles (200)");
-
-        // 6.4 Public Reads Article & Verifies Views Increment
-        res = await request("GET", `/articles/${articleSlug}`);
-        assert(res.status === 200 && res.body.viewsCount === 1, "GET /articles/:idOrSlug auto-increments viewsCount to 1");
-        res = await request("GET", `/articles/${articleSlug}`);
-        assert(res.status === 200 && res.body.viewsCount === 2, "Second read increments viewsCount to 2");
-
-        // 6.5 Admin Suspends and Reactivates Article
-        res = await request("PATCH", `/admin/articles/${articleId}/suspend`, null, { Authorization: `Bearer ${adminToken}` });
-        assert(res.status === 200 && res.body.suspended === true, "PATCH /admin/articles/:id/suspend suspends article (200)");
-        res = await request("PATCH", `/admin/articles/${articleId}/reactivate`, null, { Authorization: `Bearer ${adminToken}` });
-        assert(res.status === 200 && res.body.reactivated === true, "PATCH /admin/articles/:id/reactivate reactivates article (200)");
-
-        console.log("");
-
-        // =========================================================================
         // 7. CONTACT FORM TESTS
         // =========================================================================
         console.log("[7] Testing Contact Form Endpoints");
@@ -566,7 +525,6 @@ async function runTestSuite() {
             if (newsId) await request("DELETE", `/admin/news/${newsId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
             if (eventId) await request("DELETE", `/admin/agenda/${eventId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
             if (missionId) await request("DELETE", `/admin/missions/${missionId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
-            if (articleId) await request("DELETE", `/admin/articles/${articleId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
             if (contactId) await request("DELETE", `/admin/contacts/${contactId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
             if (subscriberId) await request("DELETE", `/admin/newsletter/subscribers/${subscriberId}`, null, { Authorization: `Bearer ${adminToken}` }).catch(() => {});
         }

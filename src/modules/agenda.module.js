@@ -33,16 +33,26 @@ function getAgendaModule({model} = {}) {
     // Admin: Create event
     async function createEvent(req, res) {
         const {
+            audience,
+            audienceEn,
             coverImage,
             description,
+            descriptionEn,
+            duration,
+            durationEn,
             endDate,
             location,
+            locationEn,
             registrationLink,
+            seats,
+            seatsEn,
             slug,
             startDate,
             status = contentStatuses.active,
             title,
-            type
+            titleEn,
+            type,
+            typeEn
         } = req.body;
 
         const uploadedImage = req.files?.coverImage?.[0]?.path || req.file?.path;
@@ -55,17 +65,27 @@ function getAgendaModule({model} = {}) {
         }
 
         const event = await agendaModel.create({
+            audience,
+            audienceEn,
             authorId,
             coverImage: uploadedImage || coverImage,
             description,
+            descriptionEn,
+            duration,
+            durationEn,
             endDate,
             location,
+            locationEn,
             registrationLink,
+            seats,
+            seatsEn,
             slug,
             startDate,
             status,
             title,
-            type
+            titleEn,
+            type,
+            typeEn
         });
 
         res.status(201).json({
@@ -109,12 +129,22 @@ function getAgendaModule({model} = {}) {
         const uploadedImage = req.files?.coverImage?.[0]?.path || req.file?.path;
         const allowedProps = [
             "title",
+            "titleEn",
             "slug",
             "description",
+            "descriptionEn",
             "startDate",
             "endDate",
             "location",
+            "locationEn",
             "type",
+            "typeEn",
+            "duration",
+            "durationEn",
+            "seats",
+            "seatsEn",
+            "audience",
+            "audienceEn",
             "registrationLink",
             "status"
         ];

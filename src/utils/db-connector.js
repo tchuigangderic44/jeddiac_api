@@ -24,8 +24,8 @@ function sequelizeConnect({
 
     let connection = new Sequelize(database, username, password, {
         dialect: "mariadb",
-        host: process.env.HOST ?? "127.0.0.1",
-        port,
+        host: process.env.DB_HOST || "127.0.0.1",
+        port: port ? parseInt(port, 10) : 3306,
         logging: false
     });
     return connection;

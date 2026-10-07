@@ -1,5 +1,10 @@
 /*jslint node*/
-require("dotenv").config();
+const fs = require("fs");
+if (fs.existsSync(".env.production") && (process.env.NODE_ENV === "production" || !fs.existsSync(".env"))) {
+    require("dotenv").config({path: ".env.production"});
+} else {
+    require("dotenv").config();
+}
 const process = require("process");
 const {SequelizeStorage, Umzug} = require("umzug");
 const {buildServer} = require("./src");

@@ -1,11 +1,13 @@
 /*jslint node*/
-const fs = require("fs");
+const process = require("node:process");
+const fs = require("node:fs");
+const dotenv = require("dotenv");
+
 if (fs.existsSync(".env.production") && (process.env.NODE_ENV === "production" || !fs.existsSync(".env"))) {
-    require("dotenv").config({path: ".env.production"});
+    dotenv.config({path: ".env.production"});
 } else {
-    require("dotenv").config();
+    dotenv.config();
 }
-const process = require("process");
 const {SequelizeStorage, Umzug} = require("umzug");
 const {buildServer} = require("./src");
 const buildRoutes = require("./src/routes");

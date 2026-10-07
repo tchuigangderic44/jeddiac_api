@@ -1,4 +1,5 @@
 const process = require("node:process");
+const fs = require("node:fs");
 const dotenv = require("dotenv");
 const express = require("express");
 const cors = require("cors");
@@ -73,6 +74,11 @@ function buildServer(router) {
     app.use(cors(corsOptions));
     app.use(express.static("public", staticUploadOptions));
     app.use(router);
+    if (process.env.PORT && isNaN(Number(process.env.PORT))) {
+        return app.listen(process.env.PORT, function () {
+            console.debug("server listening on Passenger socket %s", process.env.PORT);
+        });
+    }
     return app.listen(port, host, function () {
         console.debug("server listening on %s:%s", host, port);
     });

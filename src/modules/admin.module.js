@@ -30,7 +30,9 @@ function getAdminModule({associatedModel} = {}) {
             pole,
             poleEn,
             role = "member",
-            status = userStatuses.activated
+            status = userStatuses.activated,
+            displayOrder = 999,
+            photoSource
         } = req.body;
 
         const uploadedAvatar = req.files?.avatar?.[0]?.path || req.file?.path;
@@ -68,7 +70,9 @@ function getAdminModule({associatedModel} = {}) {
             pole,
             poleEn,
             role,
-            status
+            status,
+            displayOrder: displayOrder !== undefined ? parseInt(displayOrder, 10) : 999,
+            photoSource: photoSource || null
         });
 
         res.status(201).json({
@@ -131,7 +135,9 @@ function getAdminModule({associatedModel} = {}) {
             "contributions",
             "contributionsEn",
             "status",
-            "lang"
+            "lang",
+            "displayOrder",
+            "photoSource"
         ];
 
         allowedUpdates.forEach((prop) => {
@@ -291,21 +297,34 @@ function getAdminModule({associatedModel} = {}) {
             ? (typeof heroMetricsSetting.value === "string" ? JSON.parse(heroMetricsSetting.value) : heroMetricsSetting.value)
             : {};
 
+        const labelCountriesFr = (custom.labelCountriesFr && custom.labelCountriesFr !== "Pays du Bassin")
+            ? custom.labelCountriesFr
+            : "Personnes sensibilisées";
+
+        const labelCountriesEn = (custom.labelCountriesEn && custom.labelCountriesEn !== "Congo Basin countries" && custom.labelCountriesEn !== "People reached")
+            ? custom.labelCountriesEn
+            : "People sensitized";
+
         res.status(200).json({
             actualitesCount: totalNews,
             evenementsCount: totalAgendas,
             journalistesCibles: custom.journalistesCibles !== undefined ? Number(custom.journalistesCibles) : 20000,
-            paysAfriqueCentrale: custom.paysAfriqueCentrale !== undefined ? Number(custom.paysAfriqueCentrale) : 6,
-            regionsCameroun: custom.regionsCameroun !== undefined ? Number(custom.regionsCameroun) : 10,
-            structuresPartenaires: custom.structuresPartenaires !== undefined ? Number(custom.structuresPartenaires) : 90,
-            labelYouthFr: custom.labelYouthFr || "Jeunes mobilisés",
-            labelYouthEn: custom.labelYouthEn || "Youth mobilized",
-            labelPartnersFr: custom.labelPartnersFr || "Clubs & radios partenaires",
-            labelPartnersEn: custom.labelPartnersEn || "Partner clubs & radios",
-            labelRegionsFr: custom.labelRegionsFr || "Régions couvertes",
-            labelRegionsEn: custom.labelRegionsEn || "Covered regions",
-            labelCountriesFr: custom.labelCountriesFr || "Pays du Bassin",
-            labelCountriesEn: custom.labelCountriesEn || "Congo Basin countries"
+            structuresPartenaires: custom.structuresPartenaires !== undefined ? Number(custom.structuresPartenaires) : 300,
+            regionsCameroun: custom.regionsCameroun !== undefined ? Number(custom.regionsCameroun) : 6,
+            paysAfriqueCentrale: custom.paysAfriqueCentrale !== undefined ? Number(custom.paysAfriqueCentrale) : 9,
+            // Semantic aliases
+            jeunesFormesDirectement: custom.journalistesCibles !== undefined ? Number(custom.journalistesCibles) : 20000,
+            structuresAccompagnees: custom.structuresPartenaires !== undefined ? Number(custom.structuresPartenaires) : 300,
+            paysATerme: custom.regionsCameroun !== undefined ? Number(custom.regionsCameroun) : 6,
+            personnesSensibilisees: custom.personnesSensibilisees || "9 M+",
+            labelYouthFr: custom.labelYouthFr || "Jeunes formés directement",
+            labelYouthEn: custom.labelYouthEn || "Young people trained directly",
+            labelPartnersFr: custom.labelPartnersFr || "Structures accompagnées",
+            labelPartnersEn: custom.labelPartnersEn || "Organisations receiving support",
+            labelRegionsFr: custom.labelRegionsFr || "Pays à terme",
+            labelRegionsEn: custom.labelRegionsEn || "Target countries",
+            labelCountriesFr,
+            labelCountriesEn
         });
     }
 
@@ -316,6 +335,7 @@ function getAdminModule({associatedModel} = {}) {
             paysAfriqueCentrale,
             regionsCameroun,
             structuresPartenaires,
+            personnesSensibilisees,
             labelYouthFr,
             labelYouthEn,
             labelPartnersFr,
@@ -337,6 +357,7 @@ function getAdminModule({associatedModel} = {}) {
             ...(paysAfriqueCentrale !== undefined && {paysAfriqueCentrale: Number(paysAfriqueCentrale)}),
             ...(regionsCameroun !== undefined && {regionsCameroun: Number(regionsCameroun)}),
             ...(structuresPartenaires !== undefined && {structuresPartenaires: Number(structuresPartenaires)}),
+            ...(personnesSensibilisees !== undefined && {personnesSensibilisees: String(personnesSensibilisees)}),
             ...(labelYouthFr && {labelYouthFr}),
             ...(labelYouthEn && {labelYouthEn}),
             ...(labelPartnersFr && {labelPartnersFr}),

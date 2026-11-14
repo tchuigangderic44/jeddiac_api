@@ -34,7 +34,7 @@ const schema = {
     metier: DataTypes.STRING,
     password: DataTypes.STRING,
     phone: DataTypes.STRING,
-    role: enumType(roleList, availableRoles.memberRole),
+    role: required(DataTypes.STRING, false).with({defaultValue: "member"}),
     status: enumType(userStatuses, userStatuses.activated),
     category: DataTypes.STRING,
     pole: DataTypes.STRING,
@@ -45,7 +45,12 @@ const schema = {
     bibliographieEn: DataTypes.TEXT,
     conseilEn: DataTypes.TEXT,
     contributions: DataTypes.TEXT,
-    contributionsEn: DataTypes.TEXT
+    contributionsEn: DataTypes.TEXT,
+    displayOrder: {
+        defaultValue: 999,
+        type: DataTypes.INTEGER
+    },
+    photoSource: DataTypes.STRING
 };
 
 const excludedProps = ["password"];
@@ -70,7 +75,9 @@ const publicProps = [
     "avatar",
     "linkedin",
     "email",
-    "phone"
+    "phone",
+    "displayOrder",
+    "photoSource"
 ];
 
 function defineUserModel(connection) {
@@ -148,7 +155,7 @@ function defineUserModel(connection) {
         let query = {
             limit: parseInt(limit, 10) || 10,
             offset: parseInt(offset, 10) || 0,
-            order: [["createdAt", "DESC"]],
+            order: [["displayOrder", "ASC"], ["createdAt", "DESC"]],
             where: {}
         };
 
@@ -194,7 +201,7 @@ function defineUserModel(connection) {
         const query = {
             limit: parseInt(limit, 10) || 50,
             offset: parseInt(offset, 10) || 0,
-            order: [["lastName", "ASC"], ["firstName", "ASC"]],
+            order: [["displayOrder", "ASC"], ["lastName", "ASC"], ["firstName", "ASC"]],
             where: {
                 status: userStatuses.activated
             }

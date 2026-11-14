@@ -75,7 +75,7 @@ function parsePaginationHeaders(req, ignore, next) {
     let {limit, page, skip} = req.query;
     limit = Number.parseInt(limit, 10);
     if (!Number.isFinite(limit) || limit <= 0) {
-        limit = 10;
+        limit = 100;
     }
     page = Number.parseInt(page, 10);
     if (!Number.isFinite(page) || page <= 0) {

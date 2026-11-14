@@ -6,7 +6,15 @@ node
 const availableRoles = {
     adminRole: "admin",
     memberRole: "member",
-    honoraryMemberRole: "honorary member",
+    presidentRole: "president",
+    secretaireGeneralRole: "secretaire_general",
+    tresorierRole: "tresorier",
+    honoraryMemberRole: "honorary_member",
+    presidentHonneurRole: "president_honneur",
+    parrainRole: "parrain",
+    marraineRole: "marraine",
+    conseillerRole: "conseiller",
+    ambassadeurRole: "ambassadeur",
     operationalRole: "operational",
     partnerRole: "partner"
 };
@@ -14,8 +22,16 @@ const availableRoles = {
 const roleList = [
     "admin",
     "member",
+    "president",
+    "secretaire_general",
+    "tresorier",
     "honorary member",
     "honorary_member",
+    "president_honneur",
+    "parrain",
+    "marraine",
+    "conseiller",
+    "ambassadeur",
     "operational",
     "partner"
 ];
